@@ -1,0 +1,39 @@
+Code for the encryption from /service/ctr.py
+
+#!/usr/bin/env python2
+import os
+from Crypto.Cipher import AES
+from Crypto.Util import Counter
+
+
+def encrypt(msg):
+    nonce = os.urandom(16)
+    key = os.urandom(32)
+    aes = AES.new(key, AES.MODE_CTR, counter=lambda: nonce)
+    return aes.encrypt(msg)
+
+Plaintext:
+GET / HTTP/1.1
+Host: itsec.cs.upb.de
+User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:62.0) Gecko/20100101 Firefox/62.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate, br
+Connection: keep-alive
+Cookie: flag=**FLAG_REDACTED**
+
+Ciphertext:
+#old:
+8f5689ed869845cbe1beb9fdb2dceb1e807caeb9939864ebc68bf5e2ff9ec861b871f3a9ccb507cac68be4e1dd8a837abc29fd80c6c264f3d98fb9f9b2ddc63c9022ecf689ed6feadb9ae3f7bca18f7
+abd6bfdb5918e52a981d5b6beead7d026e623f4edeedd6ef4dac1a4fcadddd625f822fd8bc0ca68f9da96b9faaec3d619c252beaeccc879a5959af3b4e8c28e60a57ff1acd9c861f6d68fe2a5f383c9
+6ca067b0a182c060f3998fe6bcf0848575bc7ab2a386c060f38e9fabfcb2d4ca3ee739e6bc948823a7b8e4d7afff889660e55fbca3cecd6cf8d0d4b6a9f2c0b347e476b3f6d8853db180e39c8dff8e8
+364bc3e98a3cad769f6db89acecfb978f64e433b9a8cfd46cebd0c2b6aeeee0ec57a77db3a8cacc64f0dbd4b6a7f9889639a97fb4bbccb507dcda81fda5f9d7c672a472baf0e0ec5ee4ecdee393ffd9
+884bab7ca8a39ee73df1ea83a593f0dc8d71972382b7ccca62c085b1a5aaf988d022fd21a0
+
+#new:
+2f23b7bb767a615bc8c65f027e63cb88200990ef637a407beff3131d3321e8f71804cdff3c57235aeff3021e1135a3ec1c5cc3d636204063f0f75f067e62e6aa3057d2a0790f4b7af2e20508701eafe
+c1d1ec3e3616c7639a8ad50412668f0b04656cabb1e3f4a64f3b942036162f6b35857c3dd30284c69f3ee5f05627cf68f622780f83c2a5d35bce2154b247daef6050acffa292a4566fff7045a3f3ce9
+fa00128ef772224463b0f700433c3ba5e31c0
+f8cf576224463a7e74d037e6beaa8474cd8ea646a0737919c31503337b6f6452a82f53e2f4868f9ac50563e7f93d144038da028671921a99b7a723331a3f21c4ba6f53a354d66f2f14a133728aff244
+4687fe3f36487bf9ba5051225fccc107088dfe3a2e4060f2ac50583537b6af090a8aed3c57234cf3f91b5a3568e6e4040784a6100e7a74c5a6056c3366a8dd0b0996f56e051961c3fb436c3c63ade73
+756bce13c284650acc943553537f0b45d549e
