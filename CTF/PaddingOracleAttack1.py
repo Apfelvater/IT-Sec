@@ -1,15 +1,18 @@
 import os
 import sys
+import time
 
 from library.util_classes import ctf_connection
 
 conn = None
+timestamp = time.strftime("%d%m%y-%H%M%S")
+LOGFILE = f".CTF/POA_{timestamp}.LOG.txt"
 
 # ---------- Networking functions ----------
 # nc c-poa-0.itsec.cs.upb.de 10002
 def ask_padding_oracle(cipher : bytes):
 
-    #print("Checking padding of cipher", cipher)
+    start_time = time.time()
 
     # Choosing "2) Check if a message is corr..."
     conn.send_message(b'2')
@@ -20,18 +23,18 @@ def ask_padding_oracle(cipher : bytes):
 
     # Check if next output is "Valid Ciphertext :)" or "Invalid Ciphertext :("
     answer = conn.get_line_of_interest()
-    #print(answer)
+    
+    print(f"Received the oracle in {time.time() - start_time} seconds.")
+
     if b':)' in answer:
         return True
     elif b':(' in answer:
         return False
     else:
-        #print(f"Cant find the smiley in server's answer '{answer}'")
         return None
 
 # Test-Tautology
 #def ask_padding_oracle(cipher : bytes):
-#    print(cipher)
 #    return True
 
 def receive_ciphertext():
@@ -44,6 +47,30 @@ def receive_ciphertext():
 
 
 # ------------------------------------------
+
+def write_log_to_file(text):
+
+    timestamp = time.strftime("%d%m%y-%H%M%S")
+    log_file = open(LOGFILE, "a")
+
+    line = f"[{timestamp}] {text}"
+    log_file.write(line)
+
+    log_file.close()
+
+def write_block_to_file(X, name, i = None):
+
+    line = name
+    if i != None:
+        line += "_" + str(i) + ":= "
+    for x in X:
+        if x == None:
+            line += "??"
+        else:
+            line += "{0:x}".format(x)
+    line += "\n"
+    
+    write_log_to_file(line)
 
 def get_message_from_x(x, iv):
 
@@ -102,10 +129,6 @@ def main():
 
     cipher_blocks = [cipher[i*2*BLOCK_SIZE:(i+1)*2*BLOCK_SIZE] for i in range(bytes_in_cipher // BLOCK_SIZE)]
 
-    # i assume, that it is...
-    orig_IV = cipher_blocks[0]
-    # which would mean, that
-    cipher_blocks = cipher_blocks[1:]
     # X = Enc(C, key)
     X = [None] * BLOCK_SIZE
 
@@ -142,14 +165,11 @@ def main():
             except:
                 conn.close()
                 raise Exception("Tried 255 different bytes. No positive outcome.")
-            if ((oracle_count * 100 / 255) % 2.55) == 0.0:
-                print(u"\u2588", end="")
             test_IV = L + M + R_bytes
             payload = (test_IV + test_cipher).hex()
             padding_correct = ask_padding_oracle(bytes(payload, "utf-8"))
             oracle_count += 1
-        print()
-        #print(f"Attempt no.{oracle_count}: Payload IV'+C = {payload} has correct padding.")
+        write_block_to_file(test_IV, "C_i-1 or IV", i)
         print("---")
 
         X[BLOCK_SIZE-index] = get_x_byte(M, pad_val)
@@ -160,17 +180,17 @@ def main():
         for i in range(1, BLOCK_SIZE+1):
             calculate_x(i)
 
-    m = ["d063cbe12e30e4c3bfa951215c3f5564"]
-    for c_blocc in cipher_blocks[1:]:
+    m = []
+    for i in range(1, len(cipher_blocks)):
+        c_blocc = cipher_blocks[i]
         X = [None] * BLOCK_SIZE
 
-        # This part is only made for the first B L O C C
         test_cipher = bytes(byte_str_2_byte_arr(c_blocc))
 
         calc_all_x()
-        print("X =", [x.hex() for x in X])
+        write_block_to_file([int.from_bytes(x, "big") for x in X], "X", i)
 
-        m.append(get_message_from_x(X, orig_IV))
+        m.append(get_message_from_x(X, cipher_blocks[i-1]))
 
     message_string = "".join(m)
 
