@@ -97,8 +97,6 @@ class ctf_connection(object):
             line = self.connection.recvline()
             if self.autoprint:
                 print(line)
-        #if not self.autoprint:
-        #    print(f"Received {m_count} messages.")
 
     def set_autoprint(self, auto = None):
         '''Tells the object to automatically print any line, that it receives from the connection.'''
@@ -112,7 +110,11 @@ class ctf_connection(object):
         print("Connection established.")
         self.connection.send(b'')
         self._read_until(b'>')
-        
+
+    def get_messages(self):
+        m = self._message_ring.get_last_n(self.msg_buf_len)
+        return [msg for msg in m if msg != None]
+
     def print_messages(self):
         '''prints the last (n) received messages.'''
         if not self.connection:

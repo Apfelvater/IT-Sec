@@ -5,10 +5,12 @@
 #
 # This script calculates the message of a given ciphertext; given an Oracle, that tells you for any ciphertext if the message is odd or even
 
+
 import os
 from library.util_classes import ctf_connection
 
 conn = None
+username = "nleerman"
 
 """
 p, q = 7, 5
@@ -31,6 +33,7 @@ def encrypt(message,e,n):
     return message**e % n
 
 def ask_LSB_oracle(cipher):
+    answer_str = "Have a bit: m&1="
 
     # Choosing Option 3 "Oracle"
     conn.send_message(b'3')
@@ -41,8 +44,31 @@ def ask_LSB_oracle(cipher):
 
     answer = conn.get_line_of_interest()
     # TODO: Hier dann answer parsen zu LSB
+    # answer=Have a bit: m&1=0
+    if not answer_str in answer:
+        raise Exception("Oracle did not answer as expected. Answer was:\n" + answer)
+    else:
+        LSB = int(answer.strip("\n\r ")[-1])
+    return LSB
 
-    return 0
+def get_public_key() -> tuple:
+    pass
+    # TODO: Implement
+
+def get_ciphertext():
+
+    # Choosing Option 2 "Get Ciphertext"
+    conn.send_message(b'2')
+
+    # Sending username
+    conn.send_message(str.encode(username, "utf-8"))
+
+    # Searching for c=... in answers
+    answers = [b.decode("utf-8") for b in conn.get_messages()]
+    for ans in answers:
+        if ans[:2] == "c=":
+            return int(ans[2:].strip("\n\r "))
+    raise Exception("Ciphertext not found in messages.")
 
 """ TESTING: PREDEFINED INPUT
 print("------------------------")
@@ -99,6 +125,10 @@ if __name__ == "__main__":
     conn = ctf_connection()
     conn.set_autoprint()
     conn.connect(IP, PORT)
+
+    cipher = get_ciphertext()
+
+    print(cipher)
 
     """TEST
     c = 5976034
