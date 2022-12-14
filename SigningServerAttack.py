@@ -1,4 +1,5 @@
 # SigningServerAttack.py
+d = 7727
 
 class test_signing_server(object):
     def __init__(self, d, n):
@@ -14,10 +15,13 @@ def encrypt(m,e,n):
 def attack(m, e, n, server):
     m_evil = 2 * m % n
     s = server.sign(m_evil)
-    i = 0
-    t = 1
-    while encrypt(s // t, e, n) != m & (i < n):
-        t = t << 1
+    i = 1
+    t = 2 
+    while (encrypt(s // t, e, n) != m) & (i < n):
+        if i == d:
+            raise Exception(f"s = {s}, t = {t}\
+                s' = {s//t}\nm'={encrypt(s // t, e, n)}")
+        t = (t << 1) % n
         i += 1
     return s, i
 

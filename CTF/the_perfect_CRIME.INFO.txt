@@ -1,0 +1,17 @@
+/service/crime.py
+#!/usr/bin/env python3
+import os
+import zlib
+
+def encrypt(msg):
+    return os.urandom(len(msg))
+
+
+def getciphertext(msg):
+    # compression level = 1
+    return encrypt(zlib.compress(msg.encode('utf-8'), 1))
+
+Plaintext:
+GET **URL** HTTP/1.1
+Host: itsec.cs.upb.de
+Cookie: flag=**FLAG_REDACTED**
