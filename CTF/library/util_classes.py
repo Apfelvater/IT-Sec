@@ -59,8 +59,33 @@ class last_n(object):
             return self.lines[r - n :] + self.lines[: r]
 
 
+class progress(object):
+
+    def __init__(self, n, reverse_max = False):
+        self.max = n
+        self.reverse_max = reverse_max
+        self.log_max = math.log(n, 2)
+        self.print_len = 100
+
+    def print_progress(self, prog):
+        '''prog is the ABSOLUTE progress'''
+        self.rel_percent = math.log(prog, 2) / self.log_max
+        self.abs_percent = self.print_len / prog
+        print((7 + self.print_len) * " ", end = "\r")
+        round_percent = math.ceil(self.rel_percent * 10 * self.print_len) / (10 * self.print_len)
+        barlen = (1- round_percent) * self.print_len if self.reverse_max else round_percent * self.print_len
+        print(f"{round_percent * 100:.1f}% [" + "=" * int(barlen) + "]", end = "\r")
+
+    def done(self):
+        print((7 + self.print_len) * " ", end = "\r")
+        if self.reverse_max:
+            print("100% =")
+        else:
+            print("100% [" + self.print_len * "=" + "]")
+
+
 class ctf_connection(object):
-    
+    # priv
     def __init__(self, n = 16) -> None:
         self.connection = None
         self.msg_buf_len = n
@@ -98,6 +123,7 @@ class ctf_connection(object):
             if self.autoprint:
                 print(line)
 
+    # pub
     def set_autoprint(self, auto = None):
         '''Tells the object to automatically print any line, that it receives from the connection.'''
         if auto == None:
@@ -111,7 +137,8 @@ class ctf_connection(object):
         self.connection.send(b'')
         self._read_until(b'>')
 
-    def get_messages(self):
+    def get_messages(self) -> list:
+        '''Messages are stored in a list ordered from newest to oldest.'''
         m = self._message_ring.get_last_n(self.msg_buf_len)
         return [msg for msg in m if msg != None]
 
