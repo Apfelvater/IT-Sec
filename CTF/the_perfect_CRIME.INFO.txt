@@ -1,3 +1,5 @@
+ncat c-crime-0.itsec.cs.upb.de 10004
+
 /service/crime.py
 #!/usr/bin/env python3
 import os
