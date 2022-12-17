@@ -2,20 +2,25 @@
 
 from library import util_classes as util
 
+import string
+
 conn : util.ctf_connection = None
 ip       = "c-crime-0.itsec.cs.upb.de"
 port     = 10004
 username = "nleerman"
 
 PAYLOAD_PREFIX  = "flag="
-MIN_CHAR_VAL    = 32        # chr(48) = "0"
-MAX_CHAR_VAL    = 146       # get_char_val(MAX_CHAR_VAL) returns z
+MIN_CHAR_VAL    = 0
+MAX_CHAR_VAL    = len(string.printable) -3
 
 
 def get_char_val(i : int) -> str:
     if i < MIN_CHAR_VAL or i > MAX_CHAR_VAL:
         raise Exception(f"WHO TRIED TO GET THE CHAR OF {i} >:(")
     return chr(i)
+
+def get_char_val(i):
+    return string.printable[i]
 
 def get_ciphertext(text : str) -> str:
     # Choosing option 1) Encrypt
@@ -34,11 +39,11 @@ def get_ciphertext(text : str) -> str:
 def CRIME():
 
     print("Starting an evil CRIME...")
-    progress = util.progress(MAX_CHAR_VAL - MIN_CHAR_VAL)
 
     payload = PAYLOAD_PREFIX
     i = MIN_CHAR_VAL
-    while i < MAX_CHAR_VAL:
+    print(payload, end="\r")
+    while i <= MAX_CHAR_VAL:
         char_found = False
         cipher = get_ciphertext(payload + get_char_val(i))
         l = len(cipher)
@@ -47,20 +52,19 @@ def CRIME():
             cipher = get_ciphertext(payload + get_char_val(i))
             if len(cipher) > l:
                 if i == 1:
-                    progress.print_progress(i-MIN_CHAR_VAL+1)
                     char_found = True
                     payload += get_char_val(0)
+                    print(payload, end="\r")
                     i = MIN_CHAR_VAL
                 else:
                     raise Exception("Cipher is longer than before and was not detected shorter before.")
             elif len(cipher) < l:
-                progress.print_progress(i-MIN_CHAR_VAL+1)
                 char_found = True
                 payload += get_char_val(i)
+                print(payload, end="\r")
                 i = MIN_CHAR_VAL
             else:
                 i += 1
-    progress.done()
     return payload
 
 def do_it():
@@ -86,7 +90,7 @@ if __name__ == "__main__":
     # -----------------
 
     # <Testing get_char_val()
-    for i in range(48, MAX_CHAR_VAL + 1):
+    for i in range(MIN_CHAR_VAL, MAX_CHAR_VAL + 1):
         print(get_char_val(i), end = ", ")
     print()
     # >

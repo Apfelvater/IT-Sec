@@ -11,33 +11,10 @@ import sys
 import time
 import math
 from library.util_classes import ctf_connection
-
+from library.util_classes import progress
 conn = None
 username = "nleerman"
 logfile_path = "./LSB_OA_.LOG.txt"
-
-class progress(object):
-
-    def __init__(self, n, reverse_max = False):
-        self.max = n
-        self.reverse_max = reverse_max
-        self.log_max = math.log(n, 2)
-        self.print_len = 100
-
-    def print_progress(self, prog):
-        self.rel_percent = math.log(prog, 2) / self.log_max
-        self.abs_percent = self.print_len / prog
-        print((7 + self.print_len) * " ", end = "\r")
-        round_percent = math.ceil(self.rel_percent * 10 * self.print_len) / (10 * self.print_len)
-        barlen = (1- round_percent) * self.print_len if self.reverse_max else round_percent * self.print_len
-        print(f"{round_percent * 100:.1f}% [" + "=" * int(barlen) + "]", end = "\r")
-
-    def done(self):
-        print((7 + self.print_len) * " ", end = "\r")
-        if self.reverse_max:
-            print("100% =")
-        else:
-            print("100% [" + self.print_len * "=" + "]")
 
 def open_logfile(path):
     i = 0
