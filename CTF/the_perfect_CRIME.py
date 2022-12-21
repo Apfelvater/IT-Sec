@@ -3,16 +3,18 @@
 from library import util_classes as util
 
 import string
+import sys
 
 conn : util.ctf_connection = None
 ip       = "c-crime-0.itsec.cs.upb.de"
 port     = 10004
 username = "nleerman"
 
-PAYLOAD_PREFIX  = "flag="
+PAYLOAD_PREFIX  = "Cookie: flag="
 MIN_CHAR_VAL    = 0
-MAX_CHAR_VAL    = len(string.printable) -3
-
+CHAR_LIST       = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~ '
+MAX_CHAR_VAL    = len(CHAR_LIST)-1
+K               = 13 # Max len of payload
 
 def get_char_val(i : int) -> str:
     if i < MIN_CHAR_VAL or i > MAX_CHAR_VAL:
@@ -20,7 +22,7 @@ def get_char_val(i : int) -> str:
     return chr(i)
 
 def get_char_val(i):
-    return string.printable[i]
+    return CHAR_LIST[i]
 
 def get_ciphertext(text : str) -> str:
     # Choosing option 1) Encrypt
@@ -40,32 +42,44 @@ def CRIME():
 
     print("Starting an evil CRIME...")
 
-    payload = PAYLOAD_PREFIX
+    flag = "ITS{"
     i = MIN_CHAR_VAL
-    print(payload, end="\r")
-    while i <= MAX_CHAR_VAL:
+    char = None
+
+    print(flag)
+    #while i <= MAX_CHAR_VAL:
+    while char != '}' and i <= MAX_CHAR_VAL:
         char_found = False
-        cipher = get_ciphertext(payload + get_char_val(i))
+        payload = PAYLOAD_PREFIX + flag + get_char_val(i)
+        if len(payload) > K:
+            payload = payload[-K:]
+        cipher = get_ciphertext(payload)
         l = len(cipher)
         i += 1
-        while i < MAX_CHAR_VAL and not char_found:
-            cipher = get_ciphertext(payload + get_char_val(i))
-            if len(cipher) > l:
+        while i <= MAX_CHAR_VAL and not char_found:
+            payload = PAYLOAD_PREFIX + flag + get_char_val(i)
+            if len(payload) > K:
+                payload = payload[-K:]
+            cipher = get_ciphertext(payload)
+            cipherlen = len(cipher)
+            if cipherlen > l:
                 if i == 1:
                     char_found = True
-                    payload += get_char_val(0)
-                    print(payload, end="\r")
+                    char = get_char_val(0)
+                    flag += char
+                    print(repr(flag))#, end="\r")
                     i = MIN_CHAR_VAL
                 else:
                     raise Exception("Cipher is longer than before and was not detected shorter before.")
-            elif len(cipher) < l:
+            elif cipherlen < l:
                 char_found = True
-                payload += get_char_val(i)
-                print(payload, end="\r")
+                char = get_char_val(i)
+                flag += char
+                print(repr(flag))#, end="\r")
                 i = MIN_CHAR_VAL
             else:
                 i += 1
-    return payload
+    return flag
 
 def do_it():
 
@@ -85,6 +99,10 @@ def do_it():
     conn.close()
 
 if __name__ == "__main__":
+
+    do_it()
+    sys.exit()
+
     # -----------------
     #       TEST
     # -----------------
